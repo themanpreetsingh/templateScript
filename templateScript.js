@@ -35,6 +35,15 @@ window.addEventListener("DOMContentLoaded", (event) => {
     if (loginForm) {
         loginForm.addEventListener('submit', handleSubmit);
     }
+
+    const path = window.location.pathname;
+    
+    // Check the current page and execute the corresponding function
+    if (path.includes('lessons')) {
+        fetchLessonDetails();
+    } else if (path.includes('course')) {
+        prepareCoursePage();
+    }
 });
 
 function updateLoginButton() {
@@ -55,9 +64,9 @@ function fetchUserCourses() {
             }
         })
         .then((data) => {
-            // Converting response to an Map for quick retrieval
-            const courseMap = new Map(data.map(item => [item.courseId, item.enrollmentId]));
-            sessionStorage.setItem('enrollments', JSON.stringify(courseMap));
+            // Converting response to an Array which will later be used as Map for quick retrieval
+            const mapArray = Array.from(data.map(item => [item.courseId, item.enrollmentId])); 
+            sessionStorage.setItem('enrollments', JSON.stringify(mapArray));
             courseElementList.forEach(courseElement => {
                 const courseId = courseElement.getAttribute('course-id');
                 if(courseMap.has(courseId)) {
@@ -172,6 +181,7 @@ function prepareCoursePage() {
         // Hide price section
         priceSection.style.display = "none";
         // Show lessons and modules which should be hidden by default
+        moveLessonsIntoModules();
     } else if(!isLoggedIn) {
         // the button and info remains same, but the URL leads to login page
         enrollButton.href = "/";
@@ -229,7 +239,7 @@ function navigateToNextLesson(currentLesson) {
     // Find current lesson's index(for completion percentage) and next lesson's slug(for link)
     const slugList = document.querySelectorAll('.lesson-slug');
     
-    const currentLessonSlug = currentLesson.title.trim().replace(' ', '-');
+    const currentLessonSlug = currentLesson.title.trim().replace(/ /g, '-');
     console.log('generated current lesson slug = ' + currentLessonSlug);
     let nextLessonSlug = null;
     let currentLessonIndex = null;
@@ -247,7 +257,7 @@ function navigateToNextLesson(currentLesson) {
         }
     });
 
-    if(currentLessonIdex) {
+    if(currentLessonIndex) {
         progressPercentage = (currentLessonIndex / slugList.length) * 100;
     }
 
