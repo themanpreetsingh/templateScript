@@ -40,8 +40,10 @@ window.addEventListener("DOMContentLoaded", (event) => {
     
     // Check the current page and execute the corresponding function
     if (path.includes('lessons')) {
+        console.log('lesson page loaded');
         fetchLessonDetails();
-    } else if (path.includes('course')) {
+    } else if (path.includes('courses')) {
+        console.log('course page loaded');
         prepareCoursePage();
     }
 });
