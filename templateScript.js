@@ -1,4 +1,5 @@
 window.addEventListener("DOMContentLoaded", (event) => {
+    console.log('DOMContentLoaded event triggered');
     const loginForm = document.querySelector('#wf-form-Sign-In-2');
     function handleSubmit(event) {
         event.preventDefault();
