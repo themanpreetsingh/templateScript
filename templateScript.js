@@ -1,5 +1,4 @@
 window.addEventListener("DOMContentLoaded", (event) => {
-    console.log('DOMContentLoaded event triggered');
     const loginForm = document.querySelector('#wf-form-Sign-In-2');
     function handleSubmit(event) {
         event.preventDefault();
@@ -41,10 +40,8 @@ window.addEventListener("DOMContentLoaded", (event) => {
     
     // Check the current page and execute the corresponding function
     if (path.includes('lessons')) {
-        console.log('lesson page loaded');
         fetchLessonDetails();
-    } else if (path.includes('courses')) {
-        console.log('course page loaded');
+    } else if (path.includes('course')) {
         prepareCoursePage();
     }
 });
@@ -68,7 +65,8 @@ function fetchUserCourses() {
         })
         .then((data) => {
             // Converting response to an Array which will later be used as Map for quick retrieval
-            const mapArray = Array.from(data.map(item => [item.courseId, item.enrollmentId])); 
+            const courseMap = new Map(data.map(item => [item.courseId, item.enrollmentId]));
+            const mapArray = Array.from(courseMap); 
             sessionStorage.setItem('enrollments', JSON.stringify(mapArray));
             courseElementList.forEach(courseElement => {
                 const courseId = courseElement.getAttribute('course-id');
@@ -89,7 +87,12 @@ function fetchLessonDetails() {
     if(!isLoggedIn) {
         location.replace("/contact");
     }
-    const lessonId = "986984cd-03fb-450f-ac01-e106d38ee0b1";
+
+    // Path contains lessonId as slug
+    const path = window.location.pathname;
+    const pathParts = path.split('/');
+    const lessonId = pathParts[pathParts.length - 1];
+    // const lessonId = "986984cd-03fb-450f-ac01-e106d38ee0b1";
     // Check if user has access to course
     fetch(`http://127.0.0.1:8080/api/learners/lessons/${lessonId}`,{ method: 'GET', credentials: 'include'})
     .then((response) => {
@@ -242,8 +245,9 @@ function navigateToNextLesson(currentLesson) {
     // Find current lesson's index(for completion percentage) and next lesson's slug(for link)
     const slugList = document.querySelectorAll('.lesson-slug');
     
-    const currentLessonSlug = currentLesson.title.trim().replace(/ /g, '-');
-    console.log('generated current lesson slug = ' + currentLessonSlug);
+    // const currentLessonSlug = currentLesson.title.trim().replace(/ /g, '-');
+    const currentLessonSlug = currentLesson.lessonId;
+    
     let nextLessonSlug = null;
     let currentLessonIndex = null;
     let progressPercentage = null;
