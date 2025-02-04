@@ -4,10 +4,11 @@ window.addEventListener("DOMContentLoaded", (event) => {
         event.preventDefault();
         const formData = new FormData(loginForm);
         const loginData = {
-            email: formData.get('Email-Field-02'),
-            password: formData.get('Password-Field-02')
+            email: formData.get('email'),
+            password: formData.get('password')
         };
-
+        console.log('formData');
+        console.log(formData);
         fetch(`http://127.0.0.1:8080/api/learners/login`,{  
             headers: {
                 "Content-Type": "application/json",
