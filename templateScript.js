@@ -196,10 +196,14 @@ function prepareCoursePage() {
     if(isLoggedIn && isEnrolled){
         // Hide price section
         priceSection.style.display = "none";
+
         // Show lessons and modules which should be hidden by default
         moveLessonsIntoModules();
+        
+        // Add event listener to resume button
         const resumeButton = document.querySelector('#resume-course');
         const enrollmentId = enrollmentMap.get(courseId);
+        // prepareResumeButton(enrollmentId);
         resumeButton.addEventListener('click', () => resumeCourse(enrollmentId));
     } else if(!isLoggedIn) {
         // the button and info remains same, but the URL leads to login page
@@ -209,6 +213,32 @@ function prepareCoursePage() {
         enrollButton.href = "/checkout"
     }
 }
+
+// function prepareResumeButton(enrollmentId) {
+//     const resumeButton = document.querySelector('#resume-course');
+//     fetch(`http://127.0.0.1:8080/api/progress/${enrollmentId}`, {
+//         headers: {
+//             "Content-Type": "application/json",
+//         },
+//         method: 'GET',
+//         credentials: 'include'
+//     }).then((response) => {
+//         if(response.status == 401){
+//             location.replace("/contact");
+//         } else {
+//             return response.json();
+//         }
+//     }).then((progressData) => {
+//         if(progressData.completed) {
+//             // Rename resume button to restart button
+//             resumeButton.textContent = 'Restart Course';
+//         } else if(progressData.currentLessonId) {
+
+//         } else {
+
+//         }
+//     });
+// }
 
 function resumeCourse(enrollmentId) {
     fetch(`http://127.0.0.1:8080/api/progress/${enrollmentId}`, {
@@ -229,7 +259,16 @@ function resumeCourse(enrollmentId) {
         } else {
             const currentUrl = window.location.href;
             const urlWithoutSlug = currentUrl.substring(0, currentUrl.lastIndexOf('/'));
-            const newUrl = urlWithoutSlug.replace('/courses', '/lessons') + progressData.lessonId;
+            let lessonId = null;
+            if(progressData.currentLessonId) {
+                // Resume course if currentLessonId is available
+                lessonId = progressData.currentLessonId;
+            } else {
+                // Start from first lesson if currentLessonId is null
+                const lessonBlock = document.querySelector('.lesson-block');
+                lessonId = lessonBlock.getAttribute('lessonId');
+            }
+            const newUrl = urlWithoutSlug.replace('/courses', '/lessons') + lessonId;
             console.log(newUrl);
             window.location.href = newUrl;
         }
@@ -288,6 +327,7 @@ function navigateToNextLesson(currentLesson) {
     const currentLessonSlug = currentLesson.lessonId;
     
     let nextLessonSlug = null;
+    let nextLessonModuleId = null;
     let currentLessonIndex = null;
     let progressPercentage = null;
 
@@ -299,6 +339,7 @@ function navigateToNextLesson(currentLesson) {
             if (slugList[index + 1]) {
                 // Get the next element's text content
                 nextLessonSlug = slugList[index + 1].textContent.trim();
+                nextLessonModuleId = slugList[index + 1].getAttribute('moduleId');
             }
         }
     });
@@ -310,8 +351,8 @@ function navigateToNextLesson(currentLesson) {
     // Update progress by calling API
     const progressData = {
         enrollmentId: enrollmentId,
-        lastLessonId: currentLesson.lessonId,
-        lastModuleId: currentLesson.moduleId,
+        currentLessonId: nextLessonSlug,
+        currentModuleId: nextLessonModuleId,
         progressPercentage: progressPercentage
     };
     fetch(`http://127.0.0.1:8080/api/progress/${enrollmentId}`, {
