@@ -66,7 +66,7 @@ function fetchUserCourses() {
         .then((data) => {
             // Converting response to an Array which will later be used as Map for quick retrieval
             const courseMap = new Map(data.map(item => [item.courseId, item.enrollmentId]));
-            const mapArray = Array.from(courseMap); 
+            const mapArray = Array.from(courseMap);  
             sessionStorage.setItem('enrollments', JSON.stringify(mapArray));
             courseElementList.forEach(courseElement => {
                 const courseId = courseElement.getAttribute('course-id');
@@ -82,7 +82,7 @@ function fetchUserCourses() {
 
 function fetchLessonDetails() {
     const isLoggedIn = sessionStorage.getItem("loggedIn");
-    console.log(isLoggedIn);
+    
     // Redirect if user is not logged in
     if(!isLoggedIn) {
         location.replace("/contact");
@@ -92,7 +92,7 @@ function fetchLessonDetails() {
     const path = window.location.pathname;
     const pathParts = path.split('/');
     const lessonId = pathParts[pathParts.length - 1];
-    // const lessonId = "986984cd-03fb-450f-ac01-e106d38ee0b1";
+    
     // Check if user has access to course
     fetch(`http://127.0.0.1:8080/api/learners/lessons/${lessonId}`,{ method: 'GET', credentials: 'include'})
     .then((response) => {
@@ -116,6 +116,16 @@ function fetchLessonDetails() {
         // Attach logic to Next Lesson button
         const nextLessonButton = document.querySelector('#next-lesson-button');
         nextLessonButton.addEventListener('click', () => navigateToNextLesson(lesson));
+
+        // Remove previous lesson button in first lesson
+        const prevLessonButton = document.querySelector('#previous-lesson-button');
+        const slugList = document.querySelectorAll('.lesson-slug');
+        if(slugList[0] === lesson.lessonId) {
+            prevLessonButton.style.display = 'none';
+        } else {
+            // Add logic to Previous Lesson button
+            prevLessonButton.addEventListener('click', () => navigateToPreviousLesson(lesson));
+        }
     }).catch((err) => {
             console.log(err.message);
     });
@@ -188,6 +198,9 @@ function prepareCoursePage() {
         priceSection.style.display = "none";
         // Show lessons and modules which should be hidden by default
         moveLessonsIntoModules();
+        const resumeButton = document.querySelector('#resume-course');
+        const enrollmentId = enrollmentMap.get(courseId);
+        resumeButton.addEventListener('click', () => resumeCourse(enrollmentId));
     } else if(!isLoggedIn) {
         // the button and info remains same, but the URL leads to login page
         enrollButton.href = "/";
@@ -195,6 +208,32 @@ function prepareCoursePage() {
         // user is logged in but not enrolled, so URL will lead to checkout page
         enrollButton.href = "/checkout"
     }
+}
+
+function resumeCourse(enrollmentId) {
+    fetch(`http://127.0.0.1:8080/api/progress/${enrollmentId}`, {
+        headers: {
+            "Content-Type": "application/json",
+        },
+        method: 'GET',
+        credentials: 'include'
+    }).then((response) => {
+        if(response.status == 401){
+            location.replace("/contact");
+        } else {
+            return response.json();
+        }
+    }).then((progressData) => {
+        if(progressData.completed) {
+            // Navigate to finish page
+        } else {
+            const currentUrl = window.location.href;
+            const urlWithoutSlug = currentUrl.substring(0, currentUrl.lastIndexOf('/'));
+            const newUrl = urlWithoutSlug.replace('/courses', '/lessons') + progressData.lessonId;
+            console.log(newUrl);
+            window.location.href = newUrl;
+        }
+    }).catch(/* TODO: Logic in case of error */); 
 }
 
 function signupForm() {
@@ -298,5 +337,37 @@ function navigateToNextLesson(currentLesson) {
         window.location.href = newUrl;
     } else {
         // Navigate to finish page
+    }
+}
+
+function navigateToPreviousLesson(currentLesson) {
+    // Find previous lesson's slug(for link)
+    const slugList = document.querySelectorAll('.lesson-slug');
+    
+    const currentLessonSlug = currentLesson.lessonId;
+    
+    let prevLessonSlug = null;
+
+    slugList.forEach((slugElement, index) => {
+        // Check if the text content of the current element matches the currentLessonSlug
+        if (slugElement.textContent.trim() === currentLessonSlug) {
+            // Check if there is a previous element in the list
+            if (slugList[index - 1]) {
+                // Get the next element's text content
+                prevLessonSlug = slugList[index - 1].textContent.trim();
+            }
+        }
+    });
+
+    // If prevLessonSlug is found, navigate to previous lesson
+    if (prevLessonSlug) {
+        const currentUrl = window.location.href;
+        const urlWithoutSlug = currentUrl.substring(0, currentUrl.lastIndexOf('/')); 
+
+        // Construct the new URL by appending the new slug
+        const newUrl = urlWithoutSlug + '/' + prevLessonSlug;
+
+        // Redirect to next lesson
+        window.location.href = newUrl;
     }
 }
