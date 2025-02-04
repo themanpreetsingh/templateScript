@@ -268,7 +268,7 @@ function resumeCourse(enrollmentId) {
                 const lessonBlock = document.querySelector('.lesson-block');
                 lessonId = lessonBlock.getAttribute('lessonId');
             }
-            const newUrl = urlWithoutSlug.replace('/courses', '/lessons') + lessonId;
+            const newUrl = urlWithoutSlug.replace('/courses', '/lessons/') + lessonId;
             console.log(newUrl);
             window.location.href = newUrl;
         }
