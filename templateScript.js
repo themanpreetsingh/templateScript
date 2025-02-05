@@ -2,13 +2,13 @@ window.addEventListener("DOMContentLoaded", (event) => {
     const loginForm = document.querySelector('#wf-form-Sign-In-2');
     function handleSubmit(event) {
         event.preventDefault();
+        event.stopPropagation();
         const formData = new FormData(loginForm);
         const loginData = {
             email: formData.get('email'),
             password: formData.get('password')
         };
-        console.log('formData');
-        console.log(formData);
+        
         fetch(`http://127.0.0.1:8080/api/learners/login`,{  
             headers: {
                 "Content-Type": "application/json",
@@ -25,7 +25,7 @@ window.addEventListener("DOMContentLoaded", (event) => {
                 sessionStorage.setItem('loggedIn', 'true');
                 // TODO: Redirect to previous page
                 updateLoginButton();
-                // loginForm.reset();
+                loginForm.reset();
                 fetchUserCourses();
             }
         })
