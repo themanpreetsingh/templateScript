@@ -121,8 +121,8 @@ function fetchLessonDetails() {
         // Remove previous lesson button in first lesson
         const prevLessonButton = document.querySelector('#previous-lesson-button');
         const slugList = document.querySelectorAll('.lesson-slug');
-        if(slugList[0] === lesson.lessonId) {
-            prevLessonButton.style.display = 'none';
+        if(slugList[0].innerHTML === lesson.lessonId) {
+            prevLessonButton.style.visibility = 'hidden';
         } else {
             // Add logic to Previous Lesson button
             prevLessonButton.addEventListener('click', () => navigateToPreviousLesson(lesson));
@@ -139,7 +139,7 @@ function embedVideo(videoUrl) {
 
     if (videoUrl.includes('youtube.com')) {
         // For YouTube full length
-        const videoId = videoUrl.split('v=')[1];
+        let videoId = videoUrl.split('v=')[1];
         let ampersandPosition = videoId.indexOf('&');
         if (ampersandPosition != -1) {
             videoId = videoId.substring(0, ampersandPosition);
