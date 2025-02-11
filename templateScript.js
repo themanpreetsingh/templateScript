@@ -36,7 +36,7 @@ window.addEventListener("DOMContentLoaded", (event) => {
     if (loginForm) {
         loginForm.addEventListener('submit', handleSubmit);
     }
-
+    signupForm();
     const path = window.location.pathname;
     
     // Check the current page and execute the corresponding function
